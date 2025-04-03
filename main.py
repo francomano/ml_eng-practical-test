@@ -69,46 +69,45 @@ def get_translation_prompt(source_language: str, target_language: str, query_sen
     Restituisci il prompt di traduzione basato sulla query e sulle traduzioni esistenti.
     """
     query_vector = get_embedding(query_sentence)
-    
+
+    # Scegliamo il campo dei vettori e la lingua di origine in base alla lingua di input
     if source_language == "it":
+        # Se la lingua di origine è italiano
         vector_field = "sentence_vector_it"
-        source_field = "sentence" 
-        target_field = "translation"  
-        
-        # Invertiamo solo se la lingua di origine è italiano
-        match_source_language = {"match": {"source_language": source_language}}
-        match_target_language = {"match": {"target_language": target_language}}
-
+        source_field = "translation"  # La frase originale sarà in italiano
+        target_field = "sentence"  # La traduzione sarà in inglese
     else:
+        # Se la lingua di origine è inglese
         vector_field = "sentence_vector_en"
-        source_field = "sentence"
-        target_field = "translation" 
-        
-        match_source_language = {"match": {"source_language": source_language}}
-        match_target_language = {"match": {"target_language": target_language}}
+        source_field = "sentence"  # La frase originale sarà in inglese
+        target_field = "translation"  # La traduzione sarà in italiano
 
+    # Creiamo la query basata solo sulla similarità del coseno
     query = {
-    "query": {
-        "script_score": {
-            "query": {
-                "match_all": {}
-            },
-            "script": {
-                "source": f"cosineSimilarity(params.query_vector, doc['{vector_field}']) + 1.0",
-                "params": {"query_vector": query_vector}
+        "query": {
+            "script_score": {
+                "query": {
+                    "match_all": {}
+                },
+                "script": {
+                    "source": f"cosineSimilarity(params.query_vector, doc['{vector_field}']) + 1.0",
+                    "params": {"query_vector": query_vector}
+                }
             }
-        }
-    },
-    "size": 4,
-    "min_score": 0.5
-}
+        },
+        "size": 4,  # Restituiamo i primi 4 risultati più simili
+        "min_score": 0.5  # Impostiamo una soglia di similarità (facoltativo)
+    }
 
-
+    # Eseguiamo la ricerca su Elasticsearch
     res = es.search(index=index_name, body=query)
 
-    suggestions = [hit["_source"]["translation"] for hit in res["hits"]["hits"]]
+    # Estraiamo le traduzioni dai risultati
+    suggestions = [hit["_source"][target_field] for hit in res["hits"]["hits"]]
 
+    # Se non ci sono suggerimenti, restituiamo un messaggio di errore
     if not suggestions:
         return {"prompt": f"No similar sentences found for {query_sentence}."}
 
+    # Restituiamo i suggerimenti di traduzione
     return {"prompt": f"Context: {query_sentence}. Suggested translations: {', '.join(suggestions)}"}
