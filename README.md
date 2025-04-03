@@ -10,7 +10,7 @@
 
 ## Avvia Elasticsearch con Docker:
 
-docker run --name elasticsearch -d -p 9200:9200 docker.elastic.co/elasticsearch/elasticsearch:7.9.3
+docker run --name elasticsearch -d -p 9200:9200 docker.elastic.co/elasticsearch/elasticsearch:7.10.0
 
 ## Avvia il server FastAPI:
 
