@@ -1,0 +1,4 @@
+fastapi
+uvicorn
+sentence-transformers
+elasticsearch==7.10.0

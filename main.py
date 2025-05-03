@@ -9,7 +9,7 @@ index_name = "translations_with_vectors"
 
 model = SentenceTransformer('all-MiniLM-L12-v2')
 
-# Indice generalizzato ma compatibile con i nomi dei tuoi JSON
+# Indice generalizzato compatibile con i nomi dei tuoi JSON
 if not es.indices.exists(index=index_name):
     es.indices.create(index=index_name, body={
         "mappings": {
@@ -77,7 +77,7 @@ def get_translation_prompt(source_language: str, target_language: str, query_sen
                     }
                 },
                 "script": {
-                    "source": "cosineSimilarity(params.query_vector, doc['sentence_vector'])",
+                    "source": "Math.max(0, cosineSimilarity(params.query_vector, doc['sentence_vector']))",
                     "params": {"query_vector": query_vector}
                 }
             }
@@ -91,15 +91,16 @@ def get_translation_prompt(source_language: str, target_language: str, query_sen
     if not hits:
         return {"prompt": f"No similar sentences found for '{query_sentence}'."}
 
+    # Creazione del prompt con enfasi sulle frasi parallele
     examples = "\n".join([
-        f"{hit['_source']['sentence']} -> {hit['_source']['translation']}" for hit in hits
+        f"Source: {hit['_source']['sentence']}\nTranslation: {hit['_source']['translation']}" 
+        for hit in hits
     ])
 
     prompt = (
-        f"These are example translations from {source_language} to {target_language}:\n"
+        f"These are example parallel sentences with their translations from {source_language} to {target_language}:\n"
         f"{examples}\n\n"
-        f"Translate the following sentence:\n{query_sentence}"
+        f"Now, based on these examples, please translate the following sentence:\n{query_sentence}"
     )
 
     return {"prompt": prompt}
-

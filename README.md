@@ -1,39 +1,78 @@
-# README
+# Progetto di Traduzione con Elasticsearch e Sentence Transformers
+
+## Descrizione
+Questo progetto utilizza **Elasticsearch** come motore di ricerca per archiviare frasi parallele e i loro vettori di embedding generati con il modello **Sentence-Transformer (all-MiniLM-L12-v2)**. L'applicazione permette di inserire coppie di frasi tradotte e di effettuare ricerche tramite query per ottenere un prompt di traduzione basato su esempi paralleli simili.
+
+## Prerequisiti
+
+1. **Docker**: Assicurati di avere **Docker** installato e in esecuzione sul tuo sistema.
+2. **Python 3.8+**: Questo progetto è stato sviluppato utilizzando Python 3.8 o versioni successive.
 
 ## Installazione
 
-1. Installa le dipendenze:
+1. **Clonare il repository**:
 
-   ```bash
-   pip install fastapi uvicorn
-   pip install elasticsearch==7.10.0
+    ```bash
+    git clone <url-del-repository>
+    cd <nome-del-repository>
+    ```
 
-## Avvia Elasticsearch con Docker:
+2. **Creare un ambiente virtuale** (opzionale ma consigliato):
 
-docker run --name elasticsearch -d -p 9200:9200 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # su Linux/macOS
+    venv\Scripts\activate  # su Windows
+    ```
 
-## Avvia il server FastAPI:
+3. **Installare le dipendenze**:
 
-uvicorn main:app --reload
+    ```bash
+    pip install -r requirements.txt
+    ```
 
-# Scelte Tecniche
+4. **Avviare Docker con Elasticsearch**:
+   
+   Assicurati che Docker sia installato e in esecuzione. Usa il seguente comando per avviare il container Elasticsearch come single node:
 
-    Modello Embedding: all-MiniLM-L12-v2 (velocità e accuratezza).
+    ```bash
+    docker run --name elasticsearch -d -p 9200:9200 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+    ```
 
-    Metodologia: Similarità del coseno tra gli embedding per confrontare le traduzioni.
+## Comandi per Gestire Elasticsearch e Docker
 
-    Soglia: Similarità del 50% (min_score: 0.5).
+### 1. **Eliminare tutti gli indici in Elasticsearch**
 
-    Lingua di Origine: Determinata dal campo source_language fornito dall'utente, per scegliere il vettore giusto.
+Per eliminare tutti gli indici nel tuo cluster Elasticsearch (attenzione, questo cancellerà permanentemente tutti i dati):
 
-# Struttura e Implementazione
+```bash
+curl -X DELETE "http://localhost:9200/*"
+```
 
-    Elasticsearch: Utilizzato per archiviare e cercare traduzioni, ideale per scalabilità e prestazioni.
+## Comandi per Gestire Elasticsearch e Docker
 
-    Docker: Containerizza Elasticsearch per una configurazione semplice.
+### 2. **Fermare e Rimuovere il Container Docker**
 
-    FastAPI: Un'unica applicazione con due endpoint:
+- **Fermare il container**:
 
-        POST /pairs: Aggiungi traduzioni.
+    Se il container di Elasticsearch è in esecuzione, fermalo con il comando:
 
-        GET /prompt: Ottieni suggerimenti basati sulla query.
+    ```bash
+    docker stop elasticsearch
+    ```
+
+- **Rimuovere il container**:
+
+    Dopo aver fermato il container, puoi rimuoverlo con il comando:
+
+    ```bash
+    docker rm elasticsearch
+    ```
+
+### 3. **Rimuovere l'immagine di Elasticsearch (Opzionale)**
+
+Se desideri rimuovere anche l'immagine di Elasticsearch per liberare spazio, esegui:
+
+```bash
+docker rmi docker.elastic.co/elasticsearch/elasticsearch:7.10.0
+```

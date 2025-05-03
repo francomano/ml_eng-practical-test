@@ -1,0 +1,35 @@
+# Python bytecode
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual environment
+venv/
+env/
+*.env
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Logs
+*.log
+
+# Elasticsearch data (if stored locally)
+data/
+
+# FastAPI
+*.db
+
+# VSCode settings
+.vscode/
+
+# MacOS system files
+.DS_Store
+
+# IDE-specific files (e.g., PyCharm, IntelliJ)
+.idea/
+
+# Other unnecessary files
+*.bak
+*.swp
